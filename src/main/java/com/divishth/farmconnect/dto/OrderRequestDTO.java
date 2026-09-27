@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 public class OrderRequestDTO {
 
-    @NotNull(message = "Buyer ID is required")
+    // Optional: orders are always placed as the logged-in buyer
     private Long buyerId;
 
     @NotNull(message = "Crop ID is required")

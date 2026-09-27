@@ -8,18 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class FarmerMapper {
 
-    public Farmer mapRequestToFarmer(FarmerRequestDTO dto) {
-        if (dto == null) return null;
-        Farmer farmer = new Farmer();
-        farmer.setName(dto.getName());
-        farmer.setPhoneNumber(dto.getPhoneNumber());
-        // ✅ email removed from Farmer entity — lives only on User
-        farmer.setPanNo(dto.getPanNo());
-        farmer.setAadhaarNo(dto.getAadhaarNo());
-        farmer.setAddress(mapAddress(dto.getAddress()));
-        return farmer;
-    }
-
     public FarmerResponseDTO mapRequestToResponse(Farmer farmer) {
         if (farmer == null) return null;
         FarmerResponseDTO dto = new FarmerResponseDTO();
@@ -60,13 +48,4 @@ public class FarmerMapper {
         if (dto.getPinCode() != null) address.setPinCode(dto.getPinCode());
     }
 
-    private Address mapAddress(AddressRequestDTO dto) {
-        if (dto == null) return null;
-        Address address = new Address();
-        address.setAddressLine(dto.getAddressLine());
-        address.setDistrict(dto.getDistrict());
-        address.setState(dto.getState());
-        address.setPinCode(dto.getPinCode());
-        return address;
-    }
 }

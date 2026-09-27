@@ -86,6 +86,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
                         // ── Crop: browsing is open to any authenticated user ───────────────
+                        // (ownership of individual crops is checked in CropService)
                         .requestMatchers(HttpMethod.GET, "/crop/**").authenticated()
                         // Only FARMERs can create, update, or delete crops
                         .requestMatchers(HttpMethod.POST, "/crop/**").hasRole("FARMER")
@@ -93,15 +94,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/crop/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.DELETE, "/crop/**").hasRole("FARMER")
 
-                        // ── Farmer profile management ─────────────────────────────────────
+                        // ── Farmer profile management (ownership checked in FarmerService) ─
                         .requestMatchers(HttpMethod.GET, "/farmer/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/farmer/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.PATCH, "/farmer/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.DELETE, "/farmer/**").hasRole("FARMER")
 
-                        // ── Buyer profile management ──────────────────────────────────────
+                        // ── Buyer profile management (ownership checked in BuyerService) ──
                         .requestMatchers(HttpMethod.GET, "/buyer/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/buyer/**").hasRole("BUYER")
                         .requestMatchers(HttpMethod.PATCH, "/buyer/**").hasRole("BUYER")
                         .requestMatchers(HttpMethod.DELETE, "/buyer/**").hasRole("BUYER")
 

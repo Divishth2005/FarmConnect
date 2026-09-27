@@ -465,55 +465,6 @@
                     </div>
                 </div>
 
-                <!-- CREATE -->
-                <div class="card">
-                    <h3><span class="method">POST</span> /farmer — Create Farmer</h3>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Name</label>
-                            <input id="fc-name" placeholder="Ramesh Kumar">
-                        </div>
-                        <div class="form-group">
-                            <label>Phone (10 digits)</label>
-                            <input id="fc-phone" placeholder="9876543210" maxlength="10">
-                        </div>
-                    </div>
-                    <fieldset class="address-group" style="margin-top:10px;">
-                        <legend>Address</legend>
-                        <div class="form-row" style="margin-top:6px;">
-                            <div class="form-group full">
-                                <label>Address Line</label>
-                                <input id="fc-addr-line" placeholder="Village Road, Block A">
-                            </div>
-                            <div class="form-group">
-                                <label>District</label>
-                                <input id="fc-addr-district" placeholder="Nashik">
-                            </div>
-                            <div class="form-group">
-                                <label>State</label>
-                                <input id="fc-addr-state" placeholder="Maharashtra">
-                            </div>
-                            <div class="form-group">
-                                <label>Pin Code</label>
-                                <input id="fc-addr-pin" placeholder="422001">
-                            </div>
-                        </div>
-                    </fieldset>
-                    <div class="form-row" style="margin-top:10px;">
-                        <div class="form-group">
-                            <label>PAN</label>
-                            <input id="fc-pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
-                        </div>
-                        <div class="form-group">
-                            <label>Aadhaar (12 digits)</label>
-                            <input id="fc-aadhaar" placeholder="123456789012" maxlength="12">
-                        </div>
-                    </div>
-                    <div class="btn-row">
-                        <button class="btn btn-primary" onclick="createFarmer()">Create Farmer</button>
-                    </div>
-                </div>
-
                 <!-- UPDATE -->
                 <div class="card">
                     <h3><span class="method patch">PATCH</span> /farmer/{id} — Update (partial)</h3>
@@ -597,24 +548,6 @@
                 </div>
 
                 <div class="card">
-                    <h3><span class="method">POST</span> /buyer — Create Buyer</h3>
-                    <div class="form-row">
-                        <div class="form-group"><label>Name</label><input id="bc-name" placeholder="Suresh Patel"></div>
-                        <div class="form-group"><label>Phone (10 digits)</label><input id="bc-phone" placeholder="9876543210" maxlength="10"></div>
-                    </div>
-                    <fieldset class="address-group" style="margin-top:10px;">
-                        <legend>Address</legend>
-                        <div class="form-row" style="margin-top:6px;">
-                            <div class="form-group full"><label>Address Line</label><input id="bc-addr-line" placeholder="Shop 4, Market Street"></div>
-                            <div class="form-group"><label>District</label><input id="bc-addr-district" placeholder="Pune"></div>
-                            <div class="form-group"><label>State</label><input id="bc-addr-state" placeholder="Maharashtra"></div>
-                            <div class="form-group"><label>Pin Code</label><input id="bc-addr-pin" placeholder="411001"></div>
-                        </div>
-                    </fieldset>
-                    <div class="btn-row"><button class="btn btn-primary" onclick="createBuyer()">Create Buyer</button></div>
-                </div>
-
-                <div class="card">
                     <h3><span class="method patch">PATCH</span> /buyer/{id} — Update (partial)</h3>
                     <div class="form-row">
                         <div class="form-group"><label>Buyer ID</label><input id="bu-id" type="number" placeholder="1"></div>
@@ -692,7 +625,7 @@
                 <div class="card">
                     <h3><span class="method">POST</span> /crop — Create Crop</h3>
                     <div class="form-row">
-                        <div class="form-group"><label>Farmer ID</label><input id="cc-farmer-id" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Farmer ID (optional)</label><input id="cc-farmer-id" type="number" placeholder="you"></div>
                         <div class="form-group"><label>Crop Name</label><input id="cc-name" placeholder="Wheat"></div>
                         <div class="form-group"><label>Price (₹/kg)</label><input id="cc-price" type="number" step="0.01" placeholder="25.00"></div>
                     </div>
@@ -707,7 +640,7 @@
                     <h3><span class="method put">PUT</span> /crop/{id} — Update Crop</h3>
                     <div class="form-row">
                         <div class="form-group"><label>Crop ID</label><input id="cu-id" type="number" placeholder="1"></div>
-                        <div class="form-group"><label>Farmer ID</label><input id="cu-farmer-id" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Farmer ID (optional)</label><input id="cu-farmer-id" type="number" placeholder="you"></div>
                         <div class="form-group"><label>Name</label><input id="cu-name" placeholder="Wheat"></div>
                     </div>
                     <div class="form-row" style="margin-top:8px;">
@@ -725,7 +658,6 @@
                     </div>
                     <div class="btn-row">
                         <button class="btn btn-danger" onclick="deleteCrop()">Delete Crop</button>
-                        <button class="btn btn-danger" onclick="deleteAllCrops()" style="opacity:.7">⚠ Delete ALL Crops</button>
                     </div>
                 </div>
             </div>
@@ -738,7 +670,7 @@
                 <div class="card">
                     <h3><span class="method">POST</span> /orders — Place Order</h3>
                     <div class="form-row">
-                        <div class="form-group"><label>Buyer ID</label><input id="op-buyer" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Buyer ID (optional)</label><input id="op-buyer" type="number" placeholder="you"></div>
                         <div class="form-group"><label>Crop ID</label><input id="op-crop" type="number" placeholder="1"></div>
                         <div class="form-group"><label>Quantity (kg)</label><input id="op-qty" type="number" step="0.1" placeholder="10"></div>
                     </div>
@@ -748,7 +680,7 @@
                 <div class="card">
                     <h3><span class="method get">GET</span> View Orders</h3>
                     <div class="form-row">
-                        <div class="form-group"><label>Order ID (blank = all)</label><input id="og-id" type="number" placeholder="optional"></div>
+                        <div class="form-group"><label>Order ID (blank = all of yours)</label><input id="og-id" type="number" placeholder="optional"></div>
                         <div class="form-group"><label>Filter by Buyer ID</label><input id="og-buyer" type="number" placeholder="optional"></div>
                         <div class="form-group"><label>Filter by Farmer ID</label><input id="og-farmer" type="number" placeholder="optional"></div>
                     </div>
@@ -948,17 +880,6 @@
     async function getFarmer()    { await api('GET', '/farmer/' + val('f-get-id')); }
     async function deleteFarmer() { await api('DELETE', '/farmer/' + val('fd-id')); }
 
-    async function createFarmer() {
-        const body = {
-            name: val('fc-name'),
-            phoneNumber: val('fc-phone'),
-            address: addrObj('fc'),
-            panNo: val('fc-pan').toUpperCase(),
-            aadhaarNo: val('fc-aadhaar')
-        };
-        await api('POST', '/farmer', body);
-    }
-
     async function updateFarmer() {
         const addr = addrObj('fu');
         const raw = {
@@ -973,14 +894,6 @@
     // ── BUYER endpoints ──────────────────────────────────────
     async function getBuyer()    { await api('GET', '/buyer/' + val('bg-id')); }
     async function deleteBuyer() { await api('DELETE', '/buyer/' + val('bd-id')); }
-
-    async function createBuyer() {
-        await api('POST', '/buyer', {
-            name: val('bc-name'),
-            phoneNumber: val('bc-phone'),
-            address: addrObj('bc')
-        });
-    }
 
     async function updateBuyer() {
         const addr = addrObj('bu');
@@ -999,7 +912,6 @@
     async function sortCrop()      { await api('GET', `/crop/sort?field=${val('csort-field')}&direction=${val('csort-dir')}`); }
     async function pageCrop()      { await api('GET', '/crop/page?page=' + val('cpage')); }
     async function deleteCrop()    { await api('DELETE', '/crop/' + val('cdel-id')); }
-    async function deleteAllCrops(){ if (confirm('Delete ALL crops? This cannot be undone.')) await api('DELETE', '/crop'); }
 
     async function createCrop() {
         await api('POST', '/crop', {

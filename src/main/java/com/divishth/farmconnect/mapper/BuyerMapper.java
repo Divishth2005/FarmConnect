@@ -8,15 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class BuyerMapper {
 
-    public Buyer mapRequestToBuyer(BuyerRequestDTO dto) {
-        if (dto == null) return null;
-        Buyer buyer = new Buyer();
-        buyer.setName(dto.getName());
-        buyer.setPhoneNumber(dto.getPhoneNumber());
-        buyer.setAddress(mapAddress(dto.getAddress()));
-        return buyer;
-    }
-
     public BuyerResponseDTO mapRequestToResponse(Buyer buyer) {
         if (buyer == null) return null;
         BuyerResponseDTO dto = new BuyerResponseDTO();
@@ -52,13 +43,4 @@ public class BuyerMapper {
         if (dto.getPinCode() != null) address.setPinCode(dto.getPinCode());
     }
 
-    private Address mapAddress(AddressRequestDTO dto) {
-        if (dto == null) return null;
-        Address address = new Address();
-        address.setAddressLine(dto.getAddressLine());
-        address.setDistrict(dto.getDistrict());
-        address.setState(dto.getState());
-        address.setPinCode(dto.getPinCode());
-        return address;
-    }
 }

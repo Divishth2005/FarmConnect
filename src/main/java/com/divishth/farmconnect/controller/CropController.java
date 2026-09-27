@@ -70,8 +70,8 @@ public class CropController {
 
     @PutMapping("/{cropId}")
     public ResponseEntity<CropResponseDTO> updateCrop(
-            @Valid @PathVariable Long cropId,
-            @RequestBody CropRequestDTO cropRequestDTO) {
+            @PathVariable Long cropId,
+            @Valid @RequestBody CropRequestDTO cropRequestDTO) {
         CropResponseDTO updatedCrop = cropService.updateCrop(cropId, cropRequestDTO);
         return ResponseEntity.ok(updatedCrop);
     }
@@ -83,12 +83,5 @@ public class CropController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Crop not found");
         }
         return ResponseEntity.ok("Crop deleted successfully");
-    }
-
-    // ⚠️ Restricted: protected by ROLE_FARMER in SecurityConfig
-    @DeleteMapping
-    public ResponseEntity<String> deleteAllCrops() {
-        cropService.deleteAllCrops();
-        return ResponseEntity.ok("All crops deleted successfully");
     }
 }

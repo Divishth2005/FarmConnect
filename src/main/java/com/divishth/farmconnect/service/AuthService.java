@@ -7,6 +7,7 @@ import com.divishth.farmconnect.entity.Buyer;
 import com.divishth.farmconnect.entity.Farmer;
 import com.divishth.farmconnect.entity.User;
 import com.divishth.farmconnect.enums.Role;
+import com.divishth.farmconnect.exception.ConflictException;
 import com.divishth.farmconnect.repository.BuyerRepository;
 import com.divishth.farmconnect.repository.FarmerRepository;
 import com.divishth.farmconnect.repository.UserRepository;
@@ -49,7 +50,7 @@ public class AuthService {
     public String register(RegisterRequestDTO dto) {
 
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already exists");
+            throw new ConflictException("Email is already registered. Please login or use a different email.");
         }
 
         // ✅ Fix: Validate role-specific fields BEFORE saving anything to DB

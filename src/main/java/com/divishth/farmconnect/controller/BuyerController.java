@@ -4,7 +4,6 @@ import com.divishth.farmconnect.dto.*;
 import com.divishth.farmconnect.service.BuyerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,13 +13,6 @@ public class BuyerController {
 
     @Autowired
     private BuyerService buyerService;
-
-    // ✅ Fixed: renamed from createFarmer (copy-paste bug)
-    @PostMapping
-    public ResponseEntity<String> createBuyer(@Valid @RequestBody BuyerRequestDTO buyerRequestDTO) {
-        buyerService.createBuyer(buyerRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Buyer created Successfully");
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<BuyerResponseDTO> getById(@PathVariable Long id) {

@@ -1,12 +1,10 @@
 package com.divishth.farmconnect.controller;
 
-import com.divishth.farmconnect.dto.FarmerRequestDTO;
 import com.divishth.farmconnect.dto.FarmerResponseDTO;
 import com.divishth.farmconnect.dto.FarmerUpdateRequestDTO;
 import com.divishth.farmconnect.service.FarmerService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +15,6 @@ public class FarmerController {
 
     @Autowired
     private FarmerService farmerService;
-
-    @PostMapping
-    public ResponseEntity<String> createFarmer(@Valid @RequestBody FarmerRequestDTO farmerRequestDTO) {
-        farmerService.createFarmer(farmerRequestDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Farmer created Successfully");
-    }
 
     @GetMapping("/{id}")
     public ResponseEntity<FarmerResponseDTO> getById(@PathVariable Long id) {
