@@ -1,0 +1,23 @@
+package com.divishth.farmconnect.dto;
+
+import com.divishth.farmconnect.enums.OrderStatus;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class OrderResponseDTO {
+    private Long id;
+
+    private String buyerName;
+
+    private String cropName;
+
+    private Double quantity;
+
+    private Double totalPrice;
+
+    private LocalDateTime orderDate;
+
+    private OrderStatus status;
+}

@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmConnect – API Tester</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --green-dark:  #1e5631;
+            --green-mid:   #2d7a4a;
+            --green-light: #4caf78;
+            --green-pale:  #e8f5ee;
+            --bg:          #f4f6f4;
+            --white:       #ffffff;
+            --border:      #d4e0d8;
+            --text:        #1a2e22;
+            --text-soft:   #5a7a67;
+            --danger:      #c0392b;
+            --warn:        #e67e22;
+            --radius:      8px;
+            --shadow:      0 1px 4px rgba(0,0,0,.10);
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+            font-size: 14px;
+        }
+
+        /* ── Sidebar ─────────────────────────────────── */
+        .sidebar {
+            width: 200px;
+            min-width: 200px;
+            background: var(--green-dark);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+        .sidebar-logo {
+            padding: 20px 16px 14px;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            border-bottom: 1px solid rgba(255,255,255,.15);
+        }
+        .sidebar-logo span { font-size: 20px; margin-right: 6px; }
+        .auth-status {
+            padding: 10px 14px;
+            font-size: 12px;
+            background: rgba(255,255,255,.08);
+            border-bottom: 1px solid rgba(255,255,255,.1);
+            line-height: 1.6;
+        }
+        .auth-status .badge {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--green-light);
+            color: #fff;
+            margin-left: 4px;
+        }
+        .auth-status .badge.buyer { background: var(--warn); }
+        nav { padding: 8px 0; flex: 1; }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 16px;
+            cursor: pointer;
+            color: rgba(255,255,255,.75);
+            transition: background .15s, color .15s;
+            border-left: 3px solid transparent;
+            font-size: 13.5px;
+        }
+        .nav-item:hover { background: rgba(255,255,255,.1); color: #fff; }
+        .nav-item.active {
+            background: rgba(255,255,255,.14);
+            color: #fff;
+            border-left-color: var(--green-light);
+            font-weight: 600;
+        }
+        .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+        .sidebar-footer {
+            padding: 12px 14px;
+            border-top: 1px solid rgba(255,255,255,.1);
+            font-size: 11px;
+            color: rgba(255,255,255,.45);
+        }
+
+        /* ── Main layout ─────────────────────────────── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .topbar {
+            padding: 12px 20px;
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .topbar h2 { font-size: 16px; font-weight: 600; }
+        .topbar .token-pill {
+            font-size: 11px;
+            color: var(--text-soft);
+            background: var(--green-pale);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 3px 10px;
+            max-width: 260px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .content-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        .sections {
+            flex: 1;
+            overflow-y: auto;
+            padding: 18px 20px;
+        }
+        .section { display: none; }
+        .section.active { display: block; }
+
+        /* ── Response panel ──────────────────────────── */
+        .response-panel {
+            width: 320px;
+            min-width: 280px;
+            background: var(--white);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+        .response-panel .rp-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .status-badge {
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #eee;
+            color: #666;
+        }
+        .status-badge.ok { background: #d4edda; color: #155724; }
+        .status-badge.err { background: #f8d7da; color: #721c24; }
+        .status-badge.warn { background: #fff3cd; color: #856404; }
+        #response-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 14px;
+            font-family: "Menlo", "Consolas", monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        /* ── Cards ───────────────────────────────────── */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+        .card h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card h3 .method {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            background: var(--green-dark);
+            color: #fff;
+        }
+        .card h3 .method.get { background: #1a6b9a; }
+        .card h3 .method.patch { background: #8a5c00; }
+        .card h3 .method.delete { background: #8b2020; }
+        .card h3 .method.put { background: #5a3680; }
+
+        /* ── Form elements ───────────────────────────── */
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 140px; }
+        .form-group.full { min-width: 100%; }
+        label { font-size: 12px; font-weight: 600; color: var(--text-soft); }
+        input, select, textarea {
+            padding: 7px 10px;
+            border: 1px solid var(--border);
+            border-radius: 5px;
+            font-size: 13px;
+            font-family: inherit;
+            background: var(--white);
+            color: var(--text);
+            outline: none;
+            transition: border-color .15s;
+        }
+        input:focus, select:focus, textarea:focus { border-color: var(--green-mid); }
+        textarea { resize: vertical; min-height: 60px; }
+
+        .address-group {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 6px;
+        }
+        .address-group legend {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-soft);
+            padding: 0 4px;
+        }
+
+        /* ── Buttons ─────────────────────────────────── */
+        .btn {
+            padding: 7px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .15s, transform .1s;
+        }
+        .btn:active { transform: scale(.98); }
+        .btn:hover { opacity: .88; }
+        .btn-primary { background: var(--green-mid); color: #fff; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-warn { background: var(--warn); color: #fff; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+
+        /* ── Toast ───────────────────────────────────── */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 18px;
+            background: var(--green-dark);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            display: none;
+            z-index: 999;
+            box-shadow: 0 4px 12px rgba(0,0,0,.2);
+        }
+        #toast.err { background: var(--danger); }
+
+        /* ── Role toggle ─────────────────────────────── */
+        .role-toggle { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; }
+        .role-btn {
+            flex: 1;
+            padding: 7px;
+            background: var(--white);
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-soft);
+            transition: background .15s;
+        }
+        .role-btn.active { background: var(--green-mid); color: #fff; }
+
+        .divider { margin: 6px 0 12px; border: none; border-top: 1px solid var(--border); }
+
+        .info-text { font-size: 12px; color: var(--text-soft); margin-bottom: 10px; }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--green-dark);
+            margin-bottom: 4px;
+        }
+        .section-sub {
+            font-size: 13px;
+            color: var(--text-soft);
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────── -->
+<aside class="sidebar">
+    <div class="sidebar-logo"><span>🌾</span>FarmConnect</div>
+    <div class="auth-status" id="auth-status">
+        <div>Not logged in</div>
+    </div>
+    <nav>
+        <div class="nav-item active" onclick="showSection('auth')">
+            <span class="icon">🔐</span> Auth
+        </div>
+        <div class="nav-item" onclick="showSection('farmer')">
+            <span class="icon">👨‍🌾</span> Farmer
+        </div>
+        <div class="nav-item" onclick="showSection('buyer')">
+            <span class="icon">🛒</span> Buyer
+        </div>
+        <div class="nav-item" onclick="showSection('crop')">
+            <span class="icon">🌿</span> Crops
+        </div>
+        <div class="nav-item" onclick="showSection('orders')">
+            <span class="icon">📦</span> Orders
+        </div>
+    </nav>
+    <div class="sidebar-footer">API → localhost:8081</div>
+</aside>
+
+<!-- ── Main ───────────────────────────────────────────── -->
+<div class="main">
+    <div class="topbar">
+        <h2 id="topbar-title">Authentication</h2>
+        <div class="token-pill" id="token-display">No token — please login</div>
+    </div>
+
+    <div class="content-area">
+        <div class="sections">
+
+            <!-- ══════════════════════════════ AUTH ══════ -->
+            <div class="section active" id="section-auth">
+                <div class="section-title">Authentication</div>
+                <div class="section-sub">Login or register a new account</div>
+
+                <!-- LOGIN -->
+                <div class="card">
+                    <h3><span class="method">POST</span> /auth/login</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input id="login-email" type="email" placeholder="user@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input id="login-password" type="password" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="doLogin()">Login</button>
+                        <button class="btn btn-warn btn-sm" onclick="doLogout()">Logout</button>
+                    </div>
+                </div>
+
+                <!-- REGISTER -->
+                <div class="card">
+                    <h3><span class="method">POST</span> /auth/register</h3>
+                    <p class="info-text">Select role first — PAN & Aadhaar are required for FARMER.</p>
+
+                    <div class="form-group" style="margin-bottom:10px;">
+                        <label>Role</label>
+                        <div class="role-toggle">
+                            <button class="role-btn active" id="role-farmer-btn" onclick="setRegRole('FARMER')">FARMER</button>
+                            <button class="role-btn" id="role-buyer-btn" onclick="setRegRole('BUYER')">BUYER</button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="reg-role" value="FARMER">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input id="reg-name" placeholder="Ramesh Kumar">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input id="reg-email" type="email" placeholder="ramesh@example.com">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input id="reg-password" type="password" placeholder="Min 6 chars">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone (10 digits)</label>
+                            <input id="reg-phone" placeholder="9876543210" maxlength="10">
+                        </div>
+                    </div>
+
+                    <fieldset class="address-group" style="margin-top:10px;">
+                        <legend>Address</legend>
+                        <div class="form-row" style="margin-top:6px;">
+                            <div class="form-group full">
+                                <label>Address Line</label>
+                                <input id="reg-addr-line" placeholder="123 Farm Road">
+                            </div>
+                            <div class="form-group">
+                                <label>District</label>
+                                <input id="reg-addr-district" placeholder="Nashik">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input id="reg-addr-state" placeholder="Maharashtra">
+                            </div>
+                            <div class="form-group">
+                                <label>Pin Code</label>
+                                <input id="reg-addr-pin" placeholder="422001">
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div id="farmer-extra" style="margin-top:10px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>PAN (e.g. ABCDE1234F)</label>
+                                <input id="reg-pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+                            </div>
+                            <div class="form-group">
+                                <label>Aadhaar (12 digits)</label>
+                                <input id="reg-aadhaar" placeholder="123456789012" maxlength="12">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="doRegister()">Register</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════ FARMER ════ -->
+            <div class="section" id="section-farmer">
+                <div class="section-title">Farmer</div>
+                <div class="section-sub">Manage farmer profiles</div>
+
+                <!-- GET -->
+                <div class="card">
+                    <h3><span class="method get">GET</span> /farmer/{id}</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Farmer ID</label>
+                            <input id="f-get-id" type="number" placeholder="1">
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="getFarmer()">Get Farmer</button>
+                    </div>
+                </div>
+
+                <!-- CREATE -->
+                <div class="card">
+                    <h3><span class="method">POST</span> /farmer — Create Farmer</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input id="fc-name" placeholder="Ramesh Kumar">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone (10 digits)</label>
+                            <input id="fc-phone" placeholder="9876543210" maxlength="10">
+                        </div>
+                    </div>
+                    <fieldset class="address-group" style="margin-top:10px;">
+                        <legend>Address</legend>
+                        <div class="form-row" style="margin-top:6px;">
+                            <div class="form-group full">
+                                <label>Address Line</label>
+                                <input id="fc-addr-line" placeholder="Village Road, Block A">
+                            </div>
+                            <div class="form-group">
+                                <label>District</label>
+                                <input id="fc-addr-district" placeholder="Nashik">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input id="fc-addr-state" placeholder="Maharashtra">
+                            </div>
+                            <div class="form-group">
+                                <label>Pin Code</label>
+                                <input id="fc-addr-pin" placeholder="422001">
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="form-row" style="margin-top:10px;">
+                        <div class="form-group">
+                            <label>PAN</label>
+                            <input id="fc-pan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase">
+                        </div>
+                        <div class="form-group">
+                            <label>Aadhaar (12 digits)</label>
+                            <input id="fc-aadhaar" placeholder="123456789012" maxlength="12">
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="createFarmer()">Create Farmer</button>
+                    </div>
+                </div>
+
+                <!-- UPDATE -->
+                <div class="card">
+                    <h3><span class="method patch">PATCH</span> /farmer/{id} — Update (partial)</h3>
+                    <p class="info-text">Only fill fields you want to update.</p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Farmer ID</label>
+                            <input id="fu-id" type="number" placeholder="1">
+                        </div>
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input id="fu-name" placeholder="New name">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input id="fu-phone" placeholder="9876543211">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:8px;">
+                        <div class="form-group">
+                            <label>PAN</label>
+                            <input id="fu-pan" placeholder="ABCDE1234F" style="text-transform:uppercase">
+                        </div>
+                        <div class="form-group">
+                            <label>Aadhaar</label>
+                            <input id="fu-aadhaar" placeholder="123456789012">
+                        </div>
+                    </div>
+                    <fieldset class="address-group" style="margin-top:10px;">
+                        <legend>Address (partial update — only fill changed fields)</legend>
+                        <div class="form-row" style="margin-top:6px;">
+                            <div class="form-group">
+                                <label>Address Line</label>
+                                <input id="fu-addr-line" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label>District</label>
+                                <input id="fu-addr-district" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input id="fu-addr-state" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label>Pin Code</label>
+                                <input id="fu-addr-pin" placeholder="">
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="updateFarmer()">Update Farmer</button>
+                    </div>
+                </div>
+
+                <!-- DELETE -->
+                <div class="card">
+                    <h3><span class="method delete">DELETE</span> /farmer/{id}</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Farmer ID</label>
+                            <input id="fd-id" type="number" placeholder="1">
+                        </div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-danger" onclick="deleteFarmer()">Delete Farmer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════ BUYER ═════ -->
+            <div class="section" id="section-buyer">
+                <div class="section-title">Buyer</div>
+                <div class="section-sub">Manage buyer profiles</div>
+
+                <div class="card">
+                    <h3><span class="method get">GET</span> /buyer/{id}</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Buyer ID</label><input id="bg-id" type="number" placeholder="1"></div>
+                    </div>
+                    <div class="btn-row"><button class="btn btn-primary" onclick="getBuyer()">Get Buyer</button></div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method">POST</span> /buyer — Create Buyer</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Name</label><input id="bc-name" placeholder="Suresh Patel"></div>
+                        <div class="form-group"><label>Phone (10 digits)</label><input id="bc-phone" placeholder="9876543210" maxlength="10"></div>
+                    </div>
+                    <fieldset class="address-group" style="margin-top:10px;">
+                        <legend>Address</legend>
+                        <div class="form-row" style="margin-top:6px;">
+                            <div class="form-group full"><label>Address Line</label><input id="bc-addr-line" placeholder="Shop 4, Market Street"></div>
+                            <div class="form-group"><label>District</label><input id="bc-addr-district" placeholder="Pune"></div>
+                            <div class="form-group"><label>State</label><input id="bc-addr-state" placeholder="Maharashtra"></div>
+                            <div class="form-group"><label>Pin Code</label><input id="bc-addr-pin" placeholder="411001"></div>
+                        </div>
+                    </fieldset>
+                    <div class="btn-row"><button class="btn btn-primary" onclick="createBuyer()">Create Buyer</button></div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method patch">PATCH</span> /buyer/{id} — Update (partial)</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Buyer ID</label><input id="bu-id" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Name</label><input id="bu-name" placeholder="New name"></div>
+                        <div class="form-group"><label>Phone</label><input id="bu-phone" placeholder="9876543211"></div>
+                    </div>
+                    <fieldset class="address-group" style="margin-top:10px;">
+                        <legend>Address (only fill changed fields)</legend>
+                        <div class="form-row" style="margin-top:6px;">
+                            <div class="form-group"><label>Address Line</label><input id="bu-addr-line"></div>
+                            <div class="form-group"><label>District</label><input id="bu-addr-district"></div>
+                            <div class="form-group"><label>State</label><input id="bu-addr-state"></div>
+                            <div class="form-group"><label>Pin Code</label><input id="bu-addr-pin"></div>
+                        </div>
+                    </fieldset>
+                    <div class="btn-row"><button class="btn btn-primary" onclick="updateBuyer()">Update Buyer</button></div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method delete">DELETE</span> /buyer/{id}</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Buyer ID</label><input id="bd-id" type="number" placeholder="1"></div>
+                    </div>
+                    <div class="btn-row"><button class="btn btn-danger" onclick="deleteBuyer()">Delete Buyer</button></div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════ CROPS ═════ -->
+            <div class="section" id="section-crop">
+                <div class="section-title">Crops</div>
+                <div class="section-sub">Create, browse, search, filter and manage crops</div>
+
+                <div class="card">
+                    <h3><span class="method get">GET</span> All Crops &amp; By ID</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Crop ID (leave blank for all)</label><input id="cg-id" type="number" placeholder="optional"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary" onclick="getCrops()">Get All Crops</button>
+                        <button class="btn btn-primary" onclick="getCropById()">Get By ID</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method get">GET</span> Search, Filter &amp; Sort</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Search by Name</label><input id="cs-name" placeholder="Wheat"></div>
+                        <div class="form-group"><label>Min Price</label><input id="cf-min" type="number" placeholder="0"></div>
+                        <div class="form-group"><label>Max Price</label><input id="cf-max" type="number" placeholder="1000"></div>
+                    </div>
+                    <div class="form-row" style="margin-top:8px;">
+                        <div class="form-group"><label>Sort Field</label>
+                            <select id="csort-field">
+                                <option value="price">price</option>
+                                <option value="quantity">quantity</option>
+                                <option value="name">name</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Direction</label>
+                            <select id="csort-dir">
+                                <option value="asc">Ascending</option>
+                                <option value="desc">Descending</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>Page Number</label><input id="cpage" type="number" value="0" min="0"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary btn-sm" onclick="searchCrop()">Search</button>
+                        <button class="btn btn-primary btn-sm" onclick="filterCrop()">Filter Price</button>
+                        <button class="btn btn-primary btn-sm" onclick="sortCrop()">Sort</button>
+                        <button class="btn btn-primary btn-sm" onclick="pageCrop()">Page</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method">POST</span> /crop — Create Crop</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Farmer ID</label><input id="cc-farmer-id" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Crop Name</label><input id="cc-name" placeholder="Wheat"></div>
+                        <div class="form-group"><label>Price (₹/kg)</label><input id="cc-price" type="number" step="0.01" placeholder="25.00"></div>
+                    </div>
+                    <div class="form-row" style="margin-top:8px;">
+                        <div class="form-group"><label>Quantity (kg)</label><input id="cc-qty" type="number" step="0.1" placeholder="100"></div>
+                        <div class="form-group full"><label>Description</label><input id="cc-desc" placeholder="Premium quality wheat from Punjab"></div>
+                    </div>
+                    <div class="btn-row"><button class="btn btn-primary" onclick="createCrop()">Create Crop</button></div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method put">PUT</span> /crop/{id} — Update Crop</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Crop ID</label><input id="cu-id" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Farmer ID</label><input id="cu-farmer-id" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Name</label><input id="cu-name" placeholder="Wheat"></div>
+                    </div>
+                    <div class="form-row" style="margin-top:8px;">
+                        <div class="form-group"><label>Price</label><input id="cu-price" type="number" step="0.01"></div>
+                        <div class="form-group"><label>Quantity</label><input id="cu-qty" type="number" step="0.1"></div>
+                        <div class="form-group"><label>Description</label><input id="cu-desc" placeholder="optional"></div>
+                    </div>
+                    <div class="btn-row"><button class="btn btn-primary" onclick="updateCrop()">Update Crop</button></div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method delete">DELETE</span> /crop/{id}</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Crop ID</label><input id="cdel-id" type="number" placeholder="1"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-danger" onclick="deleteCrop()">Delete Crop</button>
+                        <button class="btn btn-danger" onclick="deleteAllCrops()" style="opacity:.7">⚠ Delete ALL Crops</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ══════════════════════════════ ORDERS ════ -->
+            <div class="section" id="section-orders">
+                <div class="section-title">Orders</div>
+                <div class="section-sub">Place orders and manage their lifecycle</div>
+
+                <div class="card">
+                    <h3><span class="method">POST</span> /orders — Place Order</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Buyer ID</label><input id="op-buyer" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Crop ID</label><input id="op-crop" type="number" placeholder="1"></div>
+                        <div class="form-group"><label>Quantity (kg)</label><input id="op-qty" type="number" step="0.1" placeholder="10"></div>
+                    </div>
+                    <div class="btn-row"><button class="btn btn-primary" onclick="placeOrder()">Place Order</button></div>
+                </div>
+
+                <div class="card">
+                    <h3><span class="method get">GET</span> View Orders</h3>
+                    <div class="form-row">
+                        <div class="form-group"><label>Order ID (blank = all)</label><input id="og-id" type="number" placeholder="optional"></div>
+                        <div class="form-group"><label>Filter by Buyer ID</label><input id="og-buyer" type="number" placeholder="optional"></div>
+                        <div class="form-group"><label>Filter by Farmer ID</label><input id="og-farmer" type="number" placeholder="optional"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-primary btn-sm" onclick="getOrders()">All Orders</button>
+                        <button class="btn btn-primary btn-sm" onclick="getOrderById()">By ID</button>
+                        <button class="btn btn-primary btn-sm" onclick="getOrdersByBuyer()">By Buyer</button>
+                        <button class="btn btn-primary btn-sm" onclick="getOrdersByFarmer()">By Farmer</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Order Lifecycle — PENDING → CONFIRMED → DELIVERED</h3>
+                    <p class="info-text">Cancel: BUYER only &nbsp;|&nbsp; Confirm &amp; Deliver: FARMER only</p>
+                    <div class="form-row">
+                        <div class="form-group"><label>Order ID</label><input id="ol-id" type="number" placeholder="1"></div>
+                    </div>
+                    <div class="btn-row">
+                        <button class="btn btn-warn" onclick="cancelOrder()">Cancel Order</button>
+                        <button class="btn btn-primary" onclick="confirmOrder()">Confirm Order</button>
+                        <button class="btn btn-primary" style="background:var(--green-dark)" onclick="deliverOrder()">Mark Delivered</button>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /sections -->
+
+        <!-- ── Response Panel ──────────────────────────────── -->
+        <div class="response-panel">
+            <div class="rp-header">
+                <span>Response</span>
+                <span class="status-badge" id="response-status">–</span>
+            </div>
+            <pre id="response-body">Make an API call to see the response here.</pre>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+    // ── Config ──────────────────────────────────────────────
+    const BASE_URL = '';  // same origin since served by Spring Boot
+
+    let token = localStorage.getItem('fc_token') || '';
+    let role   = localStorage.getItem('fc_role')  || '';
+    let profileId = localStorage.getItem('fc_pid') || '';
+    let userName  = localStorage.getItem('fc_name') || '';
+
+    // ── Helpers ─────────────────────────────────────────────
+    function headers(auth = true) {
+        const h = { 'Content-Type': 'application/json' };
+        if (auth && token) h['Authorization'] = 'Bearer ' + token;
+        return h;
+    }
+
+    async function api(method, path, body, auth = true) {
+        const opts = { method, headers: headers(auth) };
+        if (body !== undefined && body !== null) opts.body = JSON.stringify(body);
+        try {
+            const res  = await fetch(BASE_URL + path, opts);
+            const text = await res.text();
+            let data;
+            try { data = JSON.parse(text); } catch { data = text; }
+            showResponse(res.status, data);
+            return { ok: res.ok, status: res.status, data };
+        } catch (e) {
+            showResponse(0, { error: 'Network error: ' + e.message });
+        }
+    }
+
+    function showResponse(status, data) {
+        const badge = document.getElementById('response-status');
+        badge.textContent = status ? 'HTTP ' + status : 'Error';
+        badge.className = 'status-badge' + (status >= 200 && status < 300 ? ' ok' : status >= 400 ? ' err' : ' warn');
+        document.getElementById('response-body').textContent =
+            typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    }
+
+    function toast(msg, isErr = false) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = isErr ? 'err' : '';
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    function val(id)    { return document.getElementById(id)?.value?.trim() || ''; }
+    function numVal(id) { const v = val(id); return v !== '' ? parseFloat(v) : null; }
+
+    function addrObj(prefix) {
+        const line     = val(prefix + '-addr-line');
+        const district = val(prefix + '-addr-district');
+        const state    = val(prefix + '-addr-state');
+        const pin      = val(prefix + '-addr-pin');
+        if (!line && !district && !state && !pin) return null;
+        // Only include fields that were actually filled — empty strings
+        // would overwrite existing DB values and fail @NotBlank validation
+        const obj = {};
+        if (line)     obj.addressLine = line;
+        if (district) obj.district    = district;
+        if (state)    obj.state       = state;
+        if (pin)      obj.pinCode     = pin;
+        return obj;
+    }
+
+    // Keep only defined (non-empty) fields for PATCH
+    function clean(obj) {
+        return Object.fromEntries(
+            Object.entries(obj).filter(([, v]) => v !== null && v !== '' && v !== undefined)
+        );
+    }
+
+    // ── Navigation ───────────────────────────────────────────
+    const TITLES = { auth:'Authentication', farmer:'Farmer', buyer:'Buyer', crop:'Crops', orders:'Orders' };
+    function showSection(name) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('section-' + name).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => {
+            if (n.textContent.toLowerCase().includes(name.toLowerCase())) n.classList.add('active');
+        });
+        document.getElementById('topbar-title').textContent = TITLES[name] || name;
+        showResponse('', 'Make an API call to see the response here.');
+        document.getElementById('response-status').textContent = '–';
+        document.getElementById('response-status').className = 'status-badge';
+    }
+
+    // ── Auth UI ──────────────────────────────────────────────
+    function updateAuthStatus() {
+        const el = document.getElementById('auth-status');
+        const td = document.getElementById('token-display');
+        if (token) {
+            el.innerHTML = `<div>Logged in as</div><div><strong>${userName || '–'}</strong> <span class="badge ${role.toLowerCase()}">${role}</span></div><div style="font-size:11px;opacity:.7">ID: ${profileId}</div>`;
+            td.textContent = token.substring(0, 40) + '…';
+        } else {
+            el.innerHTML = '<div>Not logged in</div>';
+            td.textContent = 'No token — please login';
+        }
+    }
+    updateAuthStatus();
+
+    function setRegRole(r) {
+        document.getElementById('reg-role').value = r;
+        document.getElementById('role-farmer-btn').classList.toggle('active', r === 'FARMER');
+        document.getElementById('role-buyer-btn').classList.toggle('active', r === 'BUYER');
+        document.getElementById('farmer-extra').style.display = r === 'FARMER' ? '' : 'none';
+    }
+
+    // ── AUTH endpoints ───────────────────────────────────────
+    async function doLogin() {
+        const res = await api('POST', '/auth/login', {
+            email: val('login-email'),
+            password: val('login-password')
+        }, false);
+        if (res?.ok) {
+            token     = res.data.token;
+            role      = res.data.role;
+            profileId = res.data.id;
+            userName  = res.data.name;
+            localStorage.setItem('fc_token', token);
+            localStorage.setItem('fc_role', role);
+            localStorage.setItem('fc_pid', profileId);
+            localStorage.setItem('fc_name', userName);
+            updateAuthStatus();
+            toast('✅ Logged in as ' + userName);
+        } else {
+            toast('Login failed', true);
+        }
+    }
+
+    function doLogout() {
+        token = role = profileId = userName = '';
+        ['fc_token','fc_role','fc_pid','fc_name'].forEach(k => localStorage.removeItem(k));
+        updateAuthStatus();
+        toast('Logged out');
+    }
+
+    async function doRegister() {
+        const r = val('reg-role');
+        const body = {
+            name: val('reg-name'), email: val('reg-email'),
+            password: val('reg-password'), role: r,
+            phoneNumber: val('reg-phone'),
+            address: addrObj('reg')
+        };
+        if (r === 'FARMER') {
+            body.panNo    = val('reg-pan').toUpperCase();
+            body.aadhaarNo = val('reg-aadhaar');
+        }
+        const res = await api('POST', '/auth/register', body, false);
+        if (res?.ok) toast('✅ Registered! Now login.');
+        else toast('Registration failed', true);
+    }
+
+    // ── FARMER endpoints ─────────────────────────────────────
+    async function getFarmer()    { await api('GET', '/farmer/' + val('f-get-id')); }
+    async function deleteFarmer() { await api('DELETE', '/farmer/' + val('fd-id')); }
+
+    async function createFarmer() {
+        const body = {
+            name: val('fc-name'),
+            phoneNumber: val('fc-phone'),
+            address: addrObj('fc'),
+            panNo: val('fc-pan').toUpperCase(),
+            aadhaarNo: val('fc-aadhaar')
+        };
+        await api('POST', '/farmer', body);
+    }
+
+    async function updateFarmer() {
+        const addr = addrObj('fu');
+        const raw = {
+            name: val('fu-name'), phoneNumber: val('fu-phone'),
+            panNo: val('fu-pan').toUpperCase() || undefined,
+            aadhaarNo: val('fu-aadhaar') || undefined,
+            address: addr || undefined
+        };
+        await api('PATCH', '/farmer/' + val('fu-id'), clean(raw));
+    }
+
+    // ── BUYER endpoints ──────────────────────────────────────
+    async function getBuyer()    { await api('GET', '/buyer/' + val('bg-id')); }
+    async function deleteBuyer() { await api('DELETE', '/buyer/' + val('bd-id')); }
+
+    async function createBuyer() {
+        await api('POST', '/buyer', {
+            name: val('bc-name'),
+            phoneNumber: val('bc-phone'),
+            address: addrObj('bc')
+        });
+    }
+
+    async function updateBuyer() {
+        const addr = addrObj('bu');
+        const raw = {
+            name: val('bu-name'), phoneNumber: val('bu-phone'),
+            address: addr || undefined
+        };
+        await api('PATCH', '/buyer/' + val('bu-id'), clean(raw));
+    }
+
+    // ── CROP endpoints ───────────────────────────────────────
+    async function getCrops()      { await api('GET', '/crop'); }
+    async function getCropById()   { await api('GET', '/crop/' + val('cg-id')); }
+    async function searchCrop()    { await api('GET', '/crop/search?name=' + encodeURIComponent(val('cs-name'))); }
+    async function filterCrop()    { await api('GET', `/crop/filter?minPrice=${val('cf-min')}&maxPrice=${val('cf-max')}`); }
+    async function sortCrop()      { await api('GET', `/crop/sort?field=${val('csort-field')}&direction=${val('csort-dir')}`); }
+    async function pageCrop()      { await api('GET', '/crop/page?page=' + val('cpage')); }
+    async function deleteCrop()    { await api('DELETE', '/crop/' + val('cdel-id')); }
+    async function deleteAllCrops(){ if (confirm('Delete ALL crops? This cannot be undone.')) await api('DELETE', '/crop'); }
+
+    async function createCrop() {
+        await api('POST', '/crop', {
+            farmerId: numVal('cc-farmer-id'),
+            name: val('cc-name'),
+            price: numVal('cc-price'),
+            quantity: numVal('cc-qty'),
+            description: val('cc-desc') || null
+        });
+    }
+
+    async function updateCrop() {
+        await api('PUT', '/crop/' + val('cu-id'), {
+            farmerId: numVal('cu-farmer-id'),
+            name: val('cu-name'),
+            price: numVal('cu-price'),
+            quantity: numVal('cu-qty'),
+            description: val('cu-desc') || null
+        });
+    }
+
+    // ── ORDER endpoints ──────────────────────────────────────
+    async function placeOrder()      { await api('POST', '/orders', { buyerId: numVal('op-buyer'), cropId: numVal('op-crop'), quantity: numVal('op-qty') }); }
+    async function getOrders()       { await api('GET', '/orders'); }
+    async function getOrderById()    { await api('GET', '/orders/' + val('og-id')); }
+    async function getOrdersByBuyer(){ await api('GET', '/orders/buyer/' + val('og-buyer')); }
+    async function getOrdersByFarmer(){ await api('GET', '/orders/farmer/' + val('og-farmer')); }
+    async function cancelOrder()     { await api('PATCH', '/orders/' + val('ol-id') + '/cancel'); }
+    async function confirmOrder()    { await api('PATCH', '/orders/' + val('ol-id') + '/confirm'); }
+    async function deliverOrder()    { await api('PATCH', '/orders/' + val('ol-id') + '/deliver'); }
+</script>
+</body>
+</html>
