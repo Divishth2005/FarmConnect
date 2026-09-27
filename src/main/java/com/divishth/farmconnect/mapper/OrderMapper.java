@@ -1,6 +1,8 @@
 package com.divishth.farmconnect.mapper;
 
+import com.divishth.farmconnect.dto.AddressResponseDTO;
 import com.divishth.farmconnect.dto.OrderRequestDTO;
+import com.divishth.farmconnect.embedded.Address;
 import com.divishth.farmconnect.dto.OrderResponseDTO;
 import com.divishth.farmconnect.entity.Order;
 import org.springframework.stereotype.Component;
@@ -26,9 +28,24 @@ public class OrderMapper {
         dto.setStatus(order.getStatus());
         if (order.getBuyer() != null) {
             dto.setBuyerName(order.getBuyer().getName());
+            dto.setBuyerPhone(order.getBuyer().getPhoneNumber());
+            Address address = order.getBuyer().getAddress();
+            if (address != null) {
+                dto.setBuyerAddress(AddressResponseDTO.builder()
+                        .addressLine(address.getAddressLine())
+                        .district(address.getDistrict())
+                        .state(address.getState())
+                        .pinCode(address.getPinCode())
+                        .build());
+            }
         }
         if (order.getCrop() != null) {
+            dto.setCropId(order.getCrop().getId());
             dto.setCropName(order.getCrop().getName());
+            if (order.getCrop().getFarmer() != null) {
+                dto.setFarmerName(order.getCrop().getFarmer().getName());
+                dto.setFarmerPhone(order.getCrop().getFarmer().getPhoneNumber());
+            }
         }
         return dto;
     }

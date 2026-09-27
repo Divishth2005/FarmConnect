@@ -38,6 +38,10 @@ public class CropService {
             throw new AccessDeniedException("You can only add crops to your own profile");
         }
 
+        if (cropRequestDTO.getQuantity() == null || cropRequestDTO.getQuantity() <= 0) {
+            throw new IllegalArgumentException("A new listing needs a quantity greater than 0");
+        }
+
         Crop crop = cropMapper.mapRequestToCrop(cropRequestDTO);
         crop.setFarmer(farmer);
 

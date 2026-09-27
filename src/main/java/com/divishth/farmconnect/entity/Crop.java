@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,8 +30,9 @@ public class Crop {
     @Positive(message = "Price must be greater than 0")
     private Double price;
 
+    // Zero once sold out; new listings still require > 0 via CropRequestDTO
     @NotNull(message = "Quantity is required")
-    @Positive(message = "Quantity must be greater than 0")
+    @PositiveOrZero(message = "Quantity cannot be negative")
     private Double quantity;
 
     private String description;

@@ -11,6 +11,16 @@ public class OrderResponseDTO {
 
     private String buyerName;
 
+    private String buyerPhone;
+
+    private AddressResponseDTO buyerAddress;
+
+    private Long cropId;
+
+    private String farmerName;
+
+    private String farmerPhone;
+
     private String cropName;
 
     private Double quantity;

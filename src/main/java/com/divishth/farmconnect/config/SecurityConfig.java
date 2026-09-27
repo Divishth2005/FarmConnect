@@ -82,12 +82,12 @@ public class SecurityConfig {
 
                         // ── Public endpoints ──────────────────────────────────────────────
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/", "/index.html", "/**.css", "/**.js").permitAll()
+                        .requestMatchers("/", "/index.html", "/tester.html", "/assets/**", "/favicon.svg").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
-                        // ── Crop: browsing is open to any authenticated user ───────────────
+                        // ── Crop: anyone can browse the marketplace ────────────────────────
                         // (ownership of individual crops is checked in CropService)
-                        .requestMatchers(HttpMethod.GET, "/crop/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/crop", "/crop/**").permitAll()
                         // Only FARMERs can create, update, or delete crops
                         .requestMatchers(HttpMethod.POST, "/crop/**").hasRole("FARMER")
                         .requestMatchers(HttpMethod.PUT, "/crop/**").hasRole("FARMER")

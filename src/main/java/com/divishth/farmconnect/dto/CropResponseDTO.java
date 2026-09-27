@@ -15,4 +15,7 @@ public class CropResponseDTO {
     private Double price;
     private Double quantity;
     private String description;
+    private String farmerName;
+    private String farmerDistrict;
+    private String farmerState;
 }

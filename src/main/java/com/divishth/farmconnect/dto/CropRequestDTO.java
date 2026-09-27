@@ -1,6 +1,7 @@
 package com.divishth.farmconnect.dto;
 
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +17,8 @@ public class CropRequestDTO {
     @Positive(message = "Price must be greater than 0")
     private Double price;
 
-    @Positive(message = "Quantity must be greater than 0")
+    // Zero is allowed so a farmer can mark a listing sold out without deleting it
+    @PositiveOrZero(message = "Quantity cannot be negative")
     private Double quantity;
 
     private String description;

@@ -29,6 +29,11 @@ public class CropMapper {
         dto.setDescription(crop.getDescription());
         if (crop.getFarmer() != null) {
             dto.setFarmerId(crop.getFarmer().getId());
+            dto.setFarmerName(crop.getFarmer().getName());
+            if (crop.getFarmer().getAddress() != null) {
+                dto.setFarmerDistrict(crop.getFarmer().getAddress().getDistrict());
+                dto.setFarmerState(crop.getFarmer().getAddress().getState());
+            }
         }
         return dto;
     }
