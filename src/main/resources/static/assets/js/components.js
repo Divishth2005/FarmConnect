@@ -2,7 +2,7 @@
 import { api } from './api.js';
 import { session } from './session.js';
 import {
-    esc, el, money, kg, fmtNum, fmtDate, cropEmoji, cropTint, icon, toast, openModal, confirmDialog,
+    esc, el, money, kg, fmtNum, fmtDate, cropTint, cropArt, shrinkImage, icon, toast, openModal, confirmDialog,
     setLoading, clearErrors, fieldError, showApiError, field,
 } from './ui.js';
 
@@ -33,7 +33,7 @@ export function cropCard(crop, index = 0) {
     return `<button class="card crop-card" data-crop="${crop.id}" style="animation-delay:${Math.min(index, 11) * 35}ms"
             aria-label="${esc(crop.name)}, ${esc(money(crop.price))} per kg">
         <div class="crop-art" style="--art-bg:${cropTint(crop.name)}">
-            <span class="emoji" aria-hidden="true">${cropEmoji(crop.name)}</span>
+            ${cropArt(crop.name, crop.imageUrl)}
             ${soldOut ? '<div class="soldout">Sold out</div>' : ''}
         </div>
         <div class="crop-body">
@@ -86,7 +86,7 @@ export function openCropModal(crop, { onOrdered } = {}) {
         title: crop.name,
         subtitle: `Sold directly by ${crop.farmerName || 'a local farmer'}`,
         body: `
-            <div class="crop-art detail-art" style="--art-bg:${cropTint(crop.name)}"><span class="emoji">${cropEmoji(crop.name)}</span></div>
+            <div class="crop-art detail-art" style="--art-bg:${cropTint(crop.name)}">${cropArt(crop.name, crop.imageUrl)}</div>
             <div class="detail-meta">
                 <div class="meta-box"><small>Price</small><strong>${money(crop.price)}</strong> <span class="muted">/kg</span></div>
                 <div class="meta-box"><small>Available</small><strong>${soldOut ? 'Sold out' : kg(crop.quantity)}</strong></div>
@@ -187,7 +187,7 @@ export function orderCard(order, index = 0) {
     const actions = orderActions(order);
     return `<article class="card order-card" style="animation-delay:${Math.min(index, 10) * 40}ms">
         <div class="order-top">
-            <div class="li-art" style="--art-bg:${cropTint(order.cropName)}" aria-hidden="true">${cropEmoji(order.cropName)}</div>
+            <div class="li-art" style="--art-bg:${cropTint(order.cropName)}" aria-hidden="true">${cropArt(order.cropName, order.cropImageUrl)}</div>
             <div class="order-info">
                 <div class="title-row"><h3>${esc(order.cropName)}</h3>${statusBadge(order.status)}</div>
                 <div class="meta">Order #${order.id} · ${esc(fmtDate(order.orderDate))}</div>
@@ -233,6 +233,23 @@ export function openCropForm({ crop = null, onSaved } = {}) {
     const form = el(`<form novalidate>
         <div class="form-alert" role="alert"></div>
         <div class="form-grid cols-2">
+            <div class="field span-2">
+                <label>Photo <span class="muted">(optional)</span></label>
+                <div class="photo-pick" data-photo>
+                    <img class="photo-preview" alt="Crop photo preview" hidden>
+                    <button type="button" class="photo-empty" data-pick>
+                        ${icon.camera}<strong>Add a photo</strong>
+                        <small>Take one or choose from your gallery · JPG, PNG or WebP</small>
+                    </button>
+                    <div class="photo-actions" hidden>
+                        <button type="button" class="btn btn-sm" data-pick>Change</button>
+                        <button type="button" class="btn btn-sm btn-danger-soft" data-remove>Remove</button>
+                    </div>
+                    <input type="file" name="photo" accept="image/jpeg,image/png,image/webp,image/*" hidden>
+                </div>
+                <div class="hint">Listings with a clear photo get more orders.</div>
+                <div class="error"></div>
+            </div>
             ${field({ name: 'name', label: 'Crop name', value: crop?.name, placeholder: 'e.g. Basmati Rice', attrs: 'required maxlength="80" autofocus', span: true })}
             ${field({ name: 'price', label: 'Price per kg (₹)', type: 'number', value: crop?.price ?? '', placeholder: '45', attrs: 'required min="0.01" step="0.01" inputmode="decimal"' })}
             ${field({ name: 'quantity', label: 'Available stock (kg)', type: 'number', value: crop?.quantity ?? '', placeholder: '500', attrs: `required min="${editing ? 0 : 0.1}" step="0.1" inputmode="decimal"`, hint: editing ? 'Set to 0 to stop selling.' : '' })}
@@ -255,6 +272,62 @@ export function openCropForm({ crop = null, onSaved } = {}) {
     m.el.querySelector('[data-cancel]').onclick = () => m.close();
     saveBtn.onclick = () => form.requestSubmit();
 
+    // ----- Photo picker -----
+    const pick = form.querySelector('[data-photo]');
+    const preview = pick.querySelector('.photo-preview');
+    const empty = pick.querySelector('.photo-empty');
+    const actions = pick.querySelector('.photo-actions');
+    const fileInput = pick.querySelector('input[type="file"]');
+    const photo = { blob: null, removed: false, objectUrl: null, pending: null };
+
+    function showPhoto(src) {
+        preview.hidden = !src;
+        empty.hidden = !!src;
+        actions.hidden = !src;
+        if (src) preview.src = src; else preview.removeAttribute('src');
+    }
+    showPhoto(crop?.imageUrl || null);
+
+    // Remember the in-flight resize so Save can wait for it instead of skipping the photo
+    function takeFile(file) {
+        if (!file) return;
+        photo.pending = processFile(file).finally(() => { photo.pending = null; });
+    }
+
+    async function processFile(file) {
+        const f = pick.closest('.field');
+        f.classList.remove('invalid');
+        f.querySelector('.error').textContent = '';
+        pick.classList.add('busy');
+        try {
+            photo.blob = await shrinkImage(file);
+            photo.removed = false;
+            if (photo.objectUrl) URL.revokeObjectURL(photo.objectUrl);
+            photo.objectUrl = URL.createObjectURL(photo.blob);
+            showPhoto(photo.objectUrl);
+        } catch (err) {
+            fieldError(form, 'photo', err.message);
+        } finally {
+            pick.classList.remove('busy');
+            fileInput.value = '';
+        }
+    }
+
+    pick.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => fileInput.click()));
+    fileInput.addEventListener('change', () => takeFile(fileInput.files[0]));
+    pick.querySelector('[data-remove]').addEventListener('click', () => {
+        photo.blob = null;
+        photo.removed = true;
+        showPhoto(null);
+    });
+    pick.addEventListener('dragover', (e) => { e.preventDefault(); pick.classList.add('drag'); });
+    pick.addEventListener('dragleave', () => pick.classList.remove('drag'));
+    pick.addEventListener('drop', (e) => {
+        e.preventDefault();
+        pick.classList.remove('drag');
+        takeFile(e.dataTransfer.files[0]);
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         clearErrors(form);
@@ -275,15 +348,37 @@ export function openCropForm({ crop = null, onSaved } = {}) {
         if (!ok) { form.querySelector('.field.invalid input')?.focus(); return; }
 
         setLoading(saveBtn, true);
+        if (photo.pending) await photo.pending;
+        if (form.querySelector('.field.invalid')) { // the photo turned out to be unusable
+            setLoading(saveBtn, false);
+            return;
+        }
+        let saved;
         try {
-            const saved = editing ? await api.updateCrop(crop.id, body) : await api.createCrop(body);
-            m.close();
-            toast(editing ? 'Listing updated' : `${body.name} is now live in the marketplace`);
-            onSaved?.(saved);
+            saved = editing ? await api.updateCrop(crop.id, body) : await api.createCrop(body);
         } catch (err) {
             showApiError(form, err);
             setLoading(saveBtn, false);
+            return;
         }
+
+        // The listing is saved; now sync its photo
+        let photoError = null;
+        try {
+            if (photo.blob) saved = await api.uploadCropImage(saved.id, photo.blob);
+            else if (photo.removed && crop?.imageUrl) saved = await api.deleteCropImage(saved.id);
+        } catch (err) {
+            photoError = err;
+        }
+
+        if (photo.objectUrl) URL.revokeObjectURL(photo.objectUrl);
+        m.close();
+        if (photoError) {
+            toast(`Listing saved, but the photo didn't upload: ${photoError.message} Try again from Edit.`, 'error', 7000);
+        } else {
+            toast(editing ? 'Listing updated' : `${body.name} is now live in the marketplace`);
+        }
+        onSaved?.(saved);
     });
 }
 

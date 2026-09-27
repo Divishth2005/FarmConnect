@@ -18,4 +18,5 @@ public class CropResponseDTO {
     private String farmerName;
     private String farmerDistrict;
     private String farmerState;
+    private String imageUrl;
 }

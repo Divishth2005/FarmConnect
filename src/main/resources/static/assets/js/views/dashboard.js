@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { session } from '../session.js';
-import { esc, money, kg, fmtNum, cropEmoji, cropTint, errorState, $ } from '../ui.js';
+import { esc, money, kg, fmtNum, cropArt, cropTint, errorState, $ } from '../ui.js';
 import { statusBadge, orderActions, bindOrderActions, openCropForm } from '../components.js';
 
 function greeting() {
@@ -57,7 +57,7 @@ export default async function render(view) {
 
         todo.innerHTML = open.length
             ? open.slice(0, 6).map(o => `<div class="list-row">
-                <div class="li-art" style="--art-bg:${cropTint(o.cropName)}">${cropEmoji(o.cropName)}</div>
+                <div class="li-art" style="--art-bg:${cropTint(o.cropName)}">${cropArt(o.cropName, o.cropImageUrl)}</div>
                 <div class="li-main"><strong>${esc(o.cropName)} · ${kg(o.quantity)}</strong>
                     <small>${esc(o.buyerName || 'Buyer')} · ${money(o.totalPrice)}</small></div>
                 <div class="li-end">${statusBadge(o.status)}${orderActions(o)}</div>
@@ -66,7 +66,7 @@ export default async function render(view) {
 
         listings.innerHTML = mine.length
             ? mine.slice(0, 6).map(c => `<div class="list-row">
-                <div class="li-art" style="--art-bg:${cropTint(c.name)}">${cropEmoji(c.name)}</div>
+                <div class="li-art" style="--art-bg:${cropTint(c.name)}">${cropArt(c.name, c.imageUrl)}</div>
                 <div class="li-main"><strong>${esc(c.name)}</strong><small>${money(c.price)}/kg</small></div>
                 <div class="li-end">${c.quantity > 0 ? `<span class="badge badge-green plain">${kg(c.quantity)}</span>` : '<span class="badge plain">Sold out</span>'}</div>
               </div>`).join('')

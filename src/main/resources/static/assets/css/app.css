@@ -570,6 +570,46 @@ fieldset.group legend { font-weight: 700; font-size: .95rem; margin-bottom: 4px;
 
 .load-more { display: flex; justify-content: center; margin-top: 28px; }
 
+/* Crop photos (fall back to the emoji underneath until/unless the photo loads) */
+.crop-art, .li-art { position: relative; overflow: hidden; }
+.crop-photo {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; opacity: 0;
+    transition: opacity .4s var(--ease), transform .5s var(--ease);
+}
+.crop-photo.loaded { opacity: 1; }
+.crop-card:hover .crop-photo { transform: scale(1.05); }
+.crop-art .badge, .crop-art .soldout { z-index: 1; }
+
+/* Photo picker in the crop form */
+.photo-pick {
+    position: relative; overflow: hidden;
+    aspect-ratio: 16 / 9; border-radius: 14px;
+    border: 1.5px dashed var(--border-strong); background: var(--surface-2);
+    transition: border-color .2s, background-color .2s;
+}
+.photo-pick.drag { border-color: var(--primary); background: var(--primary-50); }
+.photo-pick .photo-empty {
+    position: absolute; inset: 0; width: 100%;
+    display: grid; place-content: center; justify-items: center; gap: 4px; padding: 12px;
+    border: 0; background: transparent; cursor: pointer; color: var(--text-2); text-align: center;
+    transition: background-color .2s;
+}
+.photo-pick .photo-empty:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.photo-pick .photo-empty svg { width: 34px; height: 34px; fill: none; stroke: var(--primary); stroke-width: 1.8; margin-bottom: 4px; }
+.photo-pick .photo-empty strong { font-size: .95rem; }
+.photo-pick .photo-empty small { color: var(--muted); font-size: .8rem; }
+.photo-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: view-in .35s var(--ease); }
+.photo-actions { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 8px; }
+.photo-actions .btn { box-shadow: var(--shadow); }
+.photo-pick.busy::after {
+    content: ''; position: absolute; inset: 0;
+    background: color-mix(in srgb, var(--surface) 60%, transparent)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 50'%3E%3Ccircle cx='25' cy='25' r='18' fill='none' stroke='%232e7d4f' stroke-width='4' stroke-dasharray='80 40'%3E%3CanimateTransform attributeName='transform' type='rotate' from='0 25 25' to='360 25 25' dur='.8s' repeatCount='indefinite'/%3E%3C/circle%3E%3C/svg%3E")
+        center / 40px no-repeat;
+}
+.field.invalid .photo-pick { border-color: var(--danger); }
+
 /* Skeletons */
 .skeleton { position: relative; overflow: hidden; background: var(--surface-2); border-radius: 8px; }
 .skeleton::after {

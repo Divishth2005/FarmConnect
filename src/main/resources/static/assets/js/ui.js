@@ -69,6 +69,38 @@ export function cropTint(name) {
     return `color-mix(in srgb, hsl(${hue} 70% 55%) 17%, var(--surface))`;
 }
 
+// Inner content for a crop tile: the farmer's photo if there is one, otherwise the emoji
+export function cropArt(name, imageUrl) {
+    const emoji = `<span class="emoji" aria-hidden="true">${cropEmoji(name)}</span>`;
+    if (!imageUrl) return emoji;
+    return `${emoji}<img class="crop-photo" src="${esc(imageUrl)}" alt="${esc(name)}" loading="lazy" decoding="async"
+        onload="this.classList.add('loaded')" onerror="this.remove()">`;
+}
+
+// Resize a photo in the browser before upload: max 1200px on the long side, JPEG.
+// Phone photos are often 3-8 MB; this brings them to roughly 100-300 KB.
+export async function shrinkImage(file, maxSide = 1200, quality = 0.85) {
+    if (!file.type.startsWith('image/')) throw new Error('Please choose an image file (JPG, PNG or WebP).');
+    let bitmap;
+    try {
+        bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    } catch {
+        throw new Error("This photo format isn't supported. Please use a JPG or PNG.");
+    }
+    const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale), h = Math.round(bitmap.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#fff'; // transparent PNGs get a white background in JPEG
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', quality));
+    if (!blob) throw new Error('Could not process this photo. Please try another one.');
+    return blob;
+}
+
 // ---------- Icons ----------
 export const icon = {
     pin: '<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
@@ -82,6 +114,7 @@ export const icon = {
     check: '<svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>',
     mapHome: '<svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
     logout: '<svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+    camera: '<svg viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2.5l1.5-2h6l1.5 2H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>',
     refresh: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4L21 8M21 3v5h-5"/></svg>',
 };
 

@@ -1,6 +1,6 @@
 import { api } from '../api.js';
 import { session } from '../session.js';
-import { esc, money, kg, cropEmoji, cropTint, emptyState, errorState, skeletonCards, toast, confirmDialog, setLoading, $ } from '../ui.js';
+import { esc, money, kg, cropArt, cropTint, emptyState, errorState, skeletonCards, toast, confirmDialog, setLoading, $ } from '../ui.js';
 import { openCropForm } from '../components.js';
 
 export default async function render(view) {
@@ -27,7 +27,7 @@ export default async function render(view) {
         const maxQty = Math.max(...mine.map(c => c.quantity), 1);
         grid.innerHTML = mine.map((c, i) => `
             <article class="card my-crop-card" style="animation-delay:${Math.min(i, 11) * 35}ms">
-                <div class="crop-art" style="--art-bg:${cropTint(c.name)}"><span class="emoji">${cropEmoji(c.name)}</span>
+                <div class="crop-art" style="--art-bg:${cropTint(c.name)}">${cropArt(c.name, c.imageUrl)}
                     ${c.quantity > 0 ? '<span class="badge badge-green">Live</span>' : '<span class="badge">Sold out</span>'}</div>
                 <div class="crop-body">
                     <h3>${esc(c.name)}</h3>

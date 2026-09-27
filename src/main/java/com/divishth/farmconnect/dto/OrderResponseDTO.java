@@ -17,6 +17,8 @@ public class OrderResponseDTO {
 
     private Long cropId;
 
+    private String cropImageUrl;
+
     private String farmerName;
 
     private String farmerPhone;

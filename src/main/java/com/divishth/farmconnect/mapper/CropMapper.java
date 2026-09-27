@@ -19,6 +19,11 @@ public class CropMapper {
         return crop;
     }
 
+    public static String imageUrl(Crop crop) {
+        return crop.getImageUpdatedAt() == null ? null
+                : "/crop/" + crop.getId() + "/image?v=" + crop.getImageUpdatedAt();
+    }
+
     public CropResponseDTO mapCropToResponse(Crop crop) {
         if (crop == null) return null;
         CropResponseDTO dto = new CropResponseDTO();
@@ -27,6 +32,7 @@ public class CropMapper {
         dto.setPrice(crop.getPrice());
         dto.setQuantity(crop.getQuantity());
         dto.setDescription(crop.getDescription());
+        dto.setImageUrl(imageUrl(crop));
         if (crop.getFarmer() != null) {
             dto.setFarmerId(crop.getFarmer().getId());
             dto.setFarmerName(crop.getFarmer().getName());

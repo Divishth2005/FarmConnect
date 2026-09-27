@@ -37,4 +37,8 @@ public class Crop {
 
     private String description;
 
+    // Epoch millis of the last photo upload; null when the crop has no photo.
+    // Also used to version the image URL so browsers can cache it forever.
+    private Long imageUpdatedAt;
+
 }

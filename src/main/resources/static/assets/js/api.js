@@ -26,14 +26,15 @@ const FALLBACK = {
 async function request(method, path, body) {
     const headers = { Accept: 'application/json' };
     if (session.token) headers.Authorization = `Bearer ${session.token}`;
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const isForm = body instanceof FormData; // browser sets the multipart boundary itself
+    if (body !== undefined && !isForm) headers['Content-Type'] = 'application/json';
 
     let res;
     try {
         res = await fetch(BASE + path, {
             method,
             headers,
-            body: body !== undefined ? JSON.stringify(body) : undefined,
+            body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
         });
     } catch {
         throw new ApiError(0, "Can't reach the server. Check your connection and that the backend is running.");
@@ -74,6 +75,12 @@ export const api = {
     createCrop: (crop) => request('POST', '/crop', crop),
     updateCrop: (id, crop) => request('PUT', `/crop/${id}`, crop),
     deleteCrop: (id) => request('DELETE', `/crop/${id}`),
+    uploadCropImage: (id, blob) => {
+        const form = new FormData();
+        form.append('file', blob, 'photo.jpg');
+        return request('POST', `/crop/${id}/image`, form);
+    },
+    deleteCropImage: (id) => request('DELETE', `/crop/${id}/image`),
 
     // Orders (server returns only the caller's orders)
     orders: () => request('GET', '/orders'),

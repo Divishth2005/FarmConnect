@@ -42,6 +42,7 @@ public class OrderMapper {
         if (order.getCrop() != null) {
             dto.setCropId(order.getCrop().getId());
             dto.setCropName(order.getCrop().getName());
+            dto.setCropImageUrl(CropMapper.imageUrl(order.getCrop()));
             if (order.getCrop().getFarmer() != null) {
                 dto.setFarmerName(order.getCrop().getFarmer().getName());
                 dto.setFarmerPhone(order.getCrop().getFarmer().getPhoneNumber());
