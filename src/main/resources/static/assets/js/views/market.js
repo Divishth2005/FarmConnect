@@ -138,7 +138,9 @@ export default async function render(view, { query }) {
     }
     resetBtn.addEventListener('click', reset);
 
-    view.addEventListener('click', (e) => {
+    // Listen on this page's own root, not on #view: #view outlives the page,
+    // so listeners on it would pile up with every visit to the marketplace
+    view.firstElementChild.addEventListener('click', (e) => {
         if (e.target.closest('[data-reset]')) return reset();
         if (e.target.closest('[data-retry]')) return load();
         if (e.target.closest('#load-more')) { state.shown += PAGE; return draw({ append: true }); }
